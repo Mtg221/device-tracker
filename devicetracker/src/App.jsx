@@ -6,6 +6,7 @@ import MapTracking from "./pages/MapTracking";
 import Settings from "./pages/Settings";
 import OtherPages, { Users, Security } from "./pages/OtherPages";
 import TestPage from "./TestPage";
+import EnvironmentCheck from "./EnvironmentCheck";
 import "./index.css";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/users" element={<Users />} />
             <Route path="/security" element={<Security />} />
             <Route path="/test" element={<TestPage />} />
+            <Route path="/env-check" element={<EnvironmentCheck />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
