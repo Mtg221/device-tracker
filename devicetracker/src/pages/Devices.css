@@ -1,0 +1,32 @@
+.devices-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.devices-content {
+  flex: 1;
+  padding: 25px;
+  overflow-y: auto;
+}
+
+.devices-content h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.placeholder-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--text-secondary);
+}
+
+.placeholder-page h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
