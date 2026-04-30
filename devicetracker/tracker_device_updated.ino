@@ -18,8 +18,8 @@
 // Serial communication
 HardwareSerial SerialAT(1);
 
-// Convex endpoint
-const char* CONVEX_URL = "https://fantastic-chipmunk-934.eu-west-1.convex.cloud";
+// Convex endpoint - HTTP action endpoint (PROD deployment)
+const char* CONVEX_URL = "https://dashing-crane-367.convex.cloud";
 const char* CONVEX_ENDPOINT = "/tracker/update";
 
 // Network settings
@@ -211,29 +211,46 @@ bool sendDataToConvex(double lat, double lon, int battery) {
   String jsonData = "{\"deviceId\":\"" + String(DEVICE_ID) + "\",\"latitude\":" + String(lat, 6) +
   ",\"longitude\":" + String(lon, 6) + ",\"battery\":" + String(battery) + "}";
 
-  // Configure HTTP context
-  sendATCommand("AT+CHTTPSSERVURL=\"" + String(CONVEX_URL) + "\"");
+  Serial.print("JSON Data: ");
+  Serial.println(jsonData);
+  Serial.print("Server URL: ");
+  Serial.println(CONVEX_URL);
+  Serial.print("Endpoint: ");
+  Serial.println(CONVEX_ENDPOINT);
+
+  // Initialize HTTP connection
+  if (!sendATCommand("AT+CHTTPSSERVURL=\"" + String(CONVEX_URL) + "\"", 2000)) {
+    Serial.println("Failed to set server URL");
+    return false;
+  }
   delay(500);
 
   // Set the request path
-  sendATCommand("AT+CHTTPSURL=\"" + String(CONVEX_ENDPOINT) + "\"");
+  if (!sendATCommand("AT+CHTTPSURL=\"" + String(CONVEX_ENDPOINT) + "\"", 2000)) {
+    Serial.println("Failed to set URL path");
+    return false;
+  }
   delay(500);
 
-  // Set content type header
-  sendATCommand("AT+CHTTPSHEAD=\"Content-Type: application/json\"");
+  // Set content type
+  if (!sendATCommand("AT+CHTTPSHEAD=\"Content-Type: application/json\"", 2000)) {
+    Serial.println("Failed to set content type");
+    return false;
+  }
   delay(500);
 
   // Send POST request with data
-  String postData = "AT+CHTTPSPOST=" + String(jsonData.length());
-  sendATCommand(postData);
+  Serial.println("Sending POST request...");
+  String postCmd = "AT+CHTTPSPOST=" + String(jsonData.length());
+  sendATCommand(postCmd, 2000);
   delay(500);
   
-  // Send the actual JSON data
+  // Send the JSON data
   SerialAT.print(jsonData);
-  delay(1000);
+  delay(3000);
 
   // Check response
-  bool result = sendATCommand("AT+CHTTPSPOST?", 2000);
+  bool result = sendATCommand("AT+CHTTPSPOST?", 5000);
   delay(1000);
 
   if (result) {
