@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Tracker</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .btn { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    .success { background: #4CAF50; color: white; }
+    .error { background: #f44336; color: white; }
+    #result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>📍 Test Device Tracker</h1>
+  <p>Testing Convex endpoint: <strong>dashing-crane-367.convex.cloud</strong></p>
+  
+  <button class="btn success" onclick="sendTest()">Send Test Data</button>
+  <button class="btn" onclick="sendRandom()">Send Random Location</button>
+  
+  <div id="result"></div>
+  
+  <script>
+    const CONVEX_URL = 'https://dashing-crane-367.convex.cloud';
+    
+    async function sendTest() {
+      const result = document.getElementById('result');
+      result.innerHTML = 'Sending...';
+      result.className = '';
+      
+      try {
+        const response = await fetch(`${CONVEX_URL}/tracker/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deviceId: '2AJYU-SIM7000G',
+            latitude: 14.7167,
+            longitude: -17.4677,
+            battery: 85
+          })
+        });
+        
+        const data = await response.json();
+        result.innerHTML = response.ok 
+          ? '✅ Success! Data sent.' 
+          : '❌ Error: ' + JSON.stringify(data);
+        result.className = response.ok ? 'success' : 'error';
+      } catch (e) {
+        result.innerHTML = '❌ Error: ' + e.message;
+        result.className = 'error';
+      }
+    }
+    
+    async function sendRandom() {
+      const result = document.getElementById('result');
+      result.innerHTML = 'Sending random location...';
+      
+      const lat = 14.7 + Math.random() * 0.1;
+      const lon = -17.4 + Math.random() * 0.1;
+      
+      try {
+        const response = await fetch(`${CONVEX_URL}/tracker/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deviceId: '2AJYU-SIM7000G',
+            latitude: lat,
+            longitude: lon,
+            battery: Math.floor(Math.random() * 100)
+          })
+        });
+        
+        const data = await response.json();
+        result.innerHTML = response.ok 
+          ? `✅ Success! Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}` 
+          : '❌ Error: ' + JSON.stringify(data);
+        result.className = response.ok ? 'success' : 'error';
+      } catch (e) {
+        result.innerHTML = '❌ Error: ' + e.message;
+        result.className = 'error';
+      }
+    }
+  </script>
+</body>
+</html>
