@@ -73,3 +73,14 @@ export const updateStatus = mutation({
     }
   },
 });
+
+export const clearAllDevices = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const devices = await ctx.db.query("devices").collect();
+    for (const device of devices) {
+      await ctx.db.delete(device._id);
+    }
+    return { deleted: devices.length };
+  },
+});
