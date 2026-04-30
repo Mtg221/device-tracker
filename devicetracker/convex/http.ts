@@ -1,5 +1,4 @@
-import { httpRouter } from "convex/server";
-import { httpAction } from "./_generated/server";
+import { httpRouter, httpActionGeneric } from "convex/server";
 import { api } from "./_generated/api";
 
 const http = httpRouter();
@@ -7,7 +6,7 @@ const http = httpRouter();
 http.route({
   path: "/tracker/update",
   method: "POST",
-  handler: httpAction(async (ctx, request) => {
+  handler: httpActionGeneric(async (ctx, request) => {
     try {
       const body = await request.json();
       const { deviceId, latitude, longitude, speed, battery } = body;
@@ -31,6 +30,7 @@ http.route({
         JSON.stringify({ success: true, message: "Location updated" })
       );
     } catch (error) {
+      console.error("Error in tracker/update:", error);
       return new Response(
         JSON.stringify({ error: "Internal server error" }),
         { status: 500 }
@@ -42,8 +42,10 @@ http.route({
 http.route({
   path: "/tracker/health",
   method: "GET",
-  handler: httpAction(async () => {
-    return new Response(JSON.stringify({ status: "ok" }));
+  handler: httpActionGeneric(async () => {
+    return new Response(JSON.stringify({ status: "ok" }), {
+      headers: { "Content-Type": "application/json" },
+    });
   }),
 });
 
