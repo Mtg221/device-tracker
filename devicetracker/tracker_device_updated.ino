@@ -36,6 +36,7 @@ double latitude = 0.0;
 double longitude = 0.0;
 int satelliteCount = 0;
 bool gpsValid = false;
+double speed = 0.0;
 
 void setup() {
   // Initialize serial communication
@@ -126,16 +127,43 @@ void connectToNetwork() {
 
 void sendTrackingData() {
   Serial.println("Sending tracking data...");
-  
+
   // Get GPS data directly from SIM7000G
-  sendATCommand("AT+CGNSINF");
+  Serial.println("Requesting GPS data...");
+  SerialAT.println("AT+CGNSINF");
   delay(1000);
   
-  // If we don't have valid GPS data, send with last known or default values
+  // Read and parse the GPS response
+  String gpsResponse = "";
+  unsigned long startTime = millis();
+  while (millis() - startTime < 2000) { // Wait up to 2 seconds
+    while (SerialAT.available()) {
+      char c = SerialAT.read();
+      gpsResponse += c;
+    }
+    if (gpsResponse.length() > 0 && gpsResponse.indexOf("OK") != -1) {
+      break; // Got response
+    }
+    delay(10);
+  }
+  
+  // Parse GPS data if we got a response
+  if (gpsResponse.length() > 0 && gpsResponse.indexOf("+CGNSINF:") != -1) {
+    Serial.print("GPS Response: ");
+    Serial.println(gpsResponse);
+    parseGPSData(gpsResponse);
+  } else {
+    Serial.println("No valid GPS response");
+    gpsValid = false;
+  }
+  
+  // If we don't have valid GPS data, still send what we have (last known position)
   if (!gpsValid) {
-    Serial.println("No valid GPS data, sending default coordinates");
-    latitude = 0.0;
-    longitude = 0.0;
+    Serial.println("No GPS fix, sending last known coordinates");
+    Serial.print("Last Lat: ");
+    Serial.print(latitude, 6);
+    Serial.print(", Lon: ");
+    Serial.println(longitude, 6);
   }
   
   int battery = getBatteryLevel();
@@ -144,7 +172,7 @@ void sendTrackingData() {
   Serial.print(latitude, 6);
   Serial.print(", ");
   Serial.println(longitude, 6);
-  
+
   // Send data to Convex
   if (sendDataToConvex(latitude, longitude, battery)) {
     Serial.println("Data sent successfully");
@@ -251,8 +279,53 @@ void parseGPSData(String response) {
   // Format: +CGNSINF: <GNSS run status>,<Fix status>,<UTC date & time>,<Latitude>,<Longitude>,...
   int start = response.indexOf("+CGNSINF:");
   if (start != -1) {
-    // Extract GPS data from the response
-    Serial.println("GPS Data: " + response);
-    // Parsing would go here to extract latitude, longitude, etc.
+    // Find the position after "+CGNSINF:"
+    int pos = start + 9; // Length of "+CGNSINF:"
+    
+    // Split by commas to get fields
+    int fieldCount = 0;
+    int fieldStarts[20];
+    int fieldEnds[20];
+    
+    // Mark field positions
+    fieldStarts[0] = pos;
+    for (int i = pos; i < response.length() && fieldCount < 19; i++) {
+      if (response.charAt(i) == ',') {
+        fieldEnds[fieldCount] = i;
+        fieldCount++;
+        fieldStarts[fieldCount] = i + 1;
+      }
+    }
+    fieldEnds[fieldCount] = response.length();
+    fieldCount++;
+    
+    // Field 3 is latitude (index 3), field 4 is longitude (index 4)
+    // +CGNSINF: runStatus,fixStatus,dateTime,latitude,longitude,...
+    if (fieldCount > 4) {
+      // Extract latitude (field 3)
+      String latStr = response.substring(fieldStarts[3], fieldEnds[3]);
+      latStr.trim();
+      
+      // Extract longitude (field 4)
+      String lonStr = response.substring(fieldStarts[4], fieldEnds[4]);
+      lonStr.trim();
+      
+      // Check if we have valid data (not empty)
+      if (latStr.length() > 0 && lonStr.length() > 0) {
+        double newLat = latStr.toDouble();
+        double newLon = lonStr.toDouble();
+        
+        // Only update if coordinates are valid (not 0,0)
+        if (newLat != 0.0 || newLon != 0.0) {
+          latitude = newLat;
+          longitude = newLon;
+          gpsValid = true;
+          Serial.print("Updated GPS - Lat: ");
+          Serial.print(latitude, 6);
+          Serial.print(", Lon: ");
+          Serial.println(longitude, 6);
+        }
+      }
+    }
   }
 }
