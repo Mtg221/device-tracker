@@ -18,14 +18,18 @@
 // Serial communication
 HardwareSerial SerialAT(1);
 
-// Convex endpoint - HTTP action endpoint (PROD deployment)
-const char* CONVEX_URL = "https://dashing-crane-367.convex.cloud";
-const char* CONVEX_ENDPOINT = "/tracker/update";
+// Convex endpoint - Using Go relay server (same as bus-tracking-iot-main)
+// Relay server forwards GPS data to Convex over HTTPS
+// See: bus-tracking-iot-main/examples/HttpsBuiltlnPostConvex/HttpsBuiltlnPostConvex.ino
+#define RELAY_HOST "24.144.96.134"
+#define RELAY_PORT "8345"
+#define RELAY_PATH "/gps"
+#define DEVICE_ID "2AJYU-SIM7000G"  // Unique device identifier
 
-// Network settings
-const char* APN = "internet";  // Replace with your carrier's APN
-const char* GPRS_USER = "";
-const char* GPRS_PASS = "";
+// Network settings - APN for Free Mobile
+const char* APN = "free";  // Free Mobile APN
+const char* GPRS_USER = "free";  // Free Mobile username
+const char* GPRS_PASS = "free";  // Free Mobile password
 
 // Tracking settings
 unsigned long TRACKING_INTERVAL = 30000; // 30 seconds
@@ -205,59 +209,79 @@ void sendTrackingData() {
 }
 
 bool sendDataToConvex(double lat, double lon, int battery) {
-  Serial.println("Sending HTTP request to Convex...");
+  Serial.println("Sending GPS data to relay server...");
 
-  // Create JSON data
-  String jsonData = "{\"deviceId\":\"" + String(DEVICE_ID) + "\",\"latitude\":" + String(lat, 6) +
-  ",\"longitude\":" + String(lon, 6) + ",\"battery\":" + String(battery) + "}";
-
-  Serial.print("JSON Data: ");
-  Serial.println(jsonData);
-  Serial.print("Server URL: ");
-  Serial.println(CONVEX_URL);
-  Serial.print("Endpoint: ");
-  Serial.println(CONVEX_ENDPOINT);
-
-  // Initialize HTTP connection
-  if (!sendATCommand("AT+CHTTPSSERVURL=\"" + String(CONVEX_URL) + "\"", 2000)) {
-    Serial.println("Failed to set server URL");
-    return false;
-  }
-  delay(500);
-
-  // Set the request path
-  if (!sendATCommand("AT+CHTTPSURL=\"" + String(CONVEX_ENDPOINT) + "\"", 2000)) {
-    Serial.println("Failed to set URL path");
-    return false;
-  }
-  delay(500);
-
-  // Set content type
-  if (!sendATCommand("AT+CHTTPSHEAD=\"Content-Type: application/json\"", 2000)) {
-    Serial.println("Failed to set content type");
-    return false;
-  }
-  delay(500);
-
-  // Send POST request with data
-  Serial.println("Sending POST request...");
-  String postCmd = "AT+CHTTPSPOST=" + String(jsonData.length());
-  sendATCommand(postCmd, 2000);
-  delay(500);
+  // Build URL for relay server (plain HTTP GET, same as bus-tracking-iot-main)
+  char url[256];
+  snprintf(url, sizeof(url), 
+    "http://%s:%s%s?latitude=%.6f&longitude=%.6f&speed=%.2f&altitude=0.0&device_id=%s&battery=%d",
+    RELAY_HOST, RELAY_PORT, RELAY_PATH, lat, lon, speed, DEVICE_ID, battery);
   
-  // Send the JSON data
-  SerialAT.print(jsonData);
-  delay(3000);
+  Serial.print("Relay URL: ");
+  Serial.println(url);
 
-  // Check response
-  bool result = sendATCommand("AT+CHTTPSPOST?", 5000);
+  // End any existing HTTP session
+  sendATCommand("AT+HTTPTERM", 2000);
+  delay(500);
+
+  // Initialize HTTP session
+  sendATCommand("AT+HTTPINIT");
+  if (!sendATCommand("AT+HTTPINIT", 3000)) {
+    Serial.println("HTTP init failed");
+    return false;
+  }
+  delay(500);
+
+  // Set bearer (CID=1 for SAPBR)
+  sendATCommand("AT+HTTPPARA=\"CID\",1");
+  delay(500);
+
+  // Set URL
+  String urlCmd = String("AT+HTTPPARA=\"URL\",\"") + String(url) + String("\"");
+  sendATCommand(urlCmd);
   delay(1000);
 
-  if (result) {
-    Serial.println("HTTP request sent successfully");
+  // Execute HTTP GET
+  sendATCommand("AT+HTTPACTION=0");
+  
+  // Wait for +HTTPACTION response
+  String response = "";
+  unsigned long startTime = millis();
+  int statusCode = -1;
+  
+  while (millis() - startTime < 30000UL && statusCode == -1) {
+    while (SerialAT.available()) {
+      char c = SerialAT.read();
+      response += c;
+      if (c == '\n') {
+        int idx = response.indexOf("+HTTPACTION:");
+        if (idx >= 0) {
+          // Parse status code: +HTTPACTION: 0,200,...
+          int firstComma = response.indexOf(',', idx);
+          if (firstComma != -1) {
+            int secondComma = response.indexOf(',', firstComma + 1);
+            if (secondComma != -1) {
+              String codeStr = response.substring(firstComma + 1, secondComma);
+              statusCode = codeStr.toInt();
+            }
+          }
+        }
+        response = "";
+      }
+    }
+    if (statusCode != -1) break;
+    delay(100);
+  }
+
+  // Terminate HTTP session
+  sendATCommand("AT+HTTPTERM");
+  delay(500);
+
+  if (statusCode == 200 || statusCode == 201) {
+    Serial.printf("GPS data sent successfully (HTTP %d)\n", statusCode);
     return true;
   } else {
-    Serial.println("Failed to send HTTP request");
+    Serial.printf("Failed to send GPS data (HTTP %d)\n", statusCode);
     return false;
   }
 }
