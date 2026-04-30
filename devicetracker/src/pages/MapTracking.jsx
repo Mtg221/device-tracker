@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { MapPin, Navigation } from "lucide-react";
 import "leaflet/dist/leaflet.css";
@@ -18,50 +19,7 @@ const icon = L.icon({
 });
 
 export default function MapTracking() {
-  const [devices, setDevices] = useState([
-    {
-      deviceId: "TRACK001",
-      name: "Vehicle Alpha",
-      status: "running",
-      latitude: 14.7167,
-      longitude: -17.4677,
-      speed: 45,
-      battery: 87,
-    },
-    {
-      deviceId: "TRACK002",
-      name: "Vehicle Beta",
-      status: "idle",
-      latitude: 14.6937,
-      longitude: -17.4441,
-      speed: 0,
-      battery: 62,
-    },
-    {
-      deviceId: "TRACK003",
-      name: "Vehicle Gamma",
-      status: "running",
-      latitude: 14.6939,
-      longitude: -17.4440,
-      speed: 32,
-      battery: 94,
-    },
-  ]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDevices((prev) =>
-        prev.map((device) => ({
-          ...device,
-          latitude: device.latitude + (Math.random() - 0.5) * 0.01,
-          longitude: device.longitude + (Math.random() - 0.5) * 0.01,
-        }))
-      );
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
+  const devices = useQuery(api.devices.getAll) || [];
   const center = { lat: 14.7167, lng: -17.4677 };
 
   return (
@@ -92,10 +50,10 @@ export default function MapTracking() {
                     <strong>Status:</strong> {device.status}
                   </p>
                   <p>
-                    <strong>Speed:</strong> {device.speed} km/h
+                    <strong>Speed:</strong> {device.speed || 0} km/h
                   </p>
                   <p>
-                    <strong>Battery:</strong> {device.battery}%
+                    <strong>Battery:</strong> {device.battery || 0}%
                   </p>
                 </div>
               </Popup>
