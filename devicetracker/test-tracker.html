@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Tracker - DeviceTracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>📍 Test Tracker</h1>
+    <p>Manually send tracking data to Convex</p>
+    
+    <div class="form-group">
+        <label for="deviceId">Device ID:</label>
+        <input type="text" id="deviceId" value="2AJYU-SIM7000G" placeholder="e.g., 2AJYU-SIM7000G">
+    </div>
+    
+    <div class="form-group">
+        <label for="latitude">Latitude:</label>
+        <input type="number" id="latitude" value="14.7167" step="0.000001" placeholder="e.g., 14.7167">
+    </div>
+    
+    <div class="form-group">
+        <label for="longitude">Longitude:</label>
+        <input type="number" id="longitude" value="-17.4677" step="0.000001" placeholder="e.g., -17.4677">
+    </div>
+    
+    <div class="form-group">
+        <label for="battery">Battery (%):</label>
+        <input type="number" id="battery" value="85" min="0" max="100" placeholder="e.g., 85">
+    </div>
+    
+    <button onclick="sendTrackingData()">Send to Convex</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        // Get the Convex URL from the environment or use default
+        const CONVEX_URL = 'https://dashing-crane-367.convex.cloud';
+        
+        async function sendTrackingData() {
+            const deviceId = document.getElementById('deviceId').value;
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+            const battery = parseInt(document.getElementById('battery').value);
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = '';
+            resultDiv.textContent = 'Sending...';
+            
+            try {
+                const response = await fetch(`${CONVEX_URL}/tracker/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        deviceId,
+                        latitude,
+                        longitude,
+                        battery
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.textContent = '✓ Success! Device location updated.';
+                    console.log('Response:', data);
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.textContent = '✗ Error: ' + (data.error || 'Unknown error');
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = '✗ Error: ' + error.message;
+                console.error('Error:', error);
+            }
+        }
+        
+        // Auto-send every 30 seconds for testing
+        let autoSend = false;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'a') {
+                autoSend = !autoSend;
+                console.log('Auto-send:', autoSend ? 'ON' : 'OFF');
+                if (autoSend) {
+                    setInterval(() => {
+                        sendTrackingData();
+                    }, 30000);
+                }
+            }
+        });
+        console.log('Press "a" to toggle auto-send every 30 seconds');
+    </script>
+</body>
+</html>
