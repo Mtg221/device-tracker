@@ -1,14 +1,11 @@
 #!/bin/bash
-# Deploy to Convex production deployment
+# Deploy to Vercel production deployment
 
-echo "Deploying to Convex production deployment..."
+echo "Deploying to Vercel production deployment..."
 
-# Set the deployment to prod
-export CONVEX_DEPLOYMENT=prod
-
-# Deploy to production
-npx convex deploy --prod
+# Build the project
+npm run build
 
 echo ""
-echo "Deployment complete!"
-echo "Check your functions at: https://dashing-crane-367.convex.cloud/_internal/functions"
+echo "Deployment to Vercel complete!"
+echo "Your app is now deployed to Vercel."

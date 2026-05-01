@@ -6,7 +6,7 @@ import MapTracking from "./pages/MapTracking";
 import Settings from "./pages/Settings";
 import OtherPages, { Users, Security } from "./pages/OtherPages";
 import "./index.css";
-import { useSupabaseClient } from "./convexClient";
+import { useSupabase } from "./convexClient";
 
 export default function App() {
   return (

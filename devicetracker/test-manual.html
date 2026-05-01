@@ -20,7 +20,7 @@
   <div id="result"></div>
   
   <script>
-const CONVEX_URL = 'https://tlhqgdvnnswmhtljmuut.supabase.co';
+const SUPABASE_URL = 'https://tlhqgdvnnswmhtljmuut.supabase.co';
     
     async function sendTest() {
       const result = document.getElementById('result');
@@ -28,12 +28,12 @@ const CONVEX_URL = 'https://tlhqgdvnnswmhtljmuut.supabase.co';
       result.className = '';
       
       try {
-        const response = await fetch(`${CONVEX_URL}/rest/v1/devices`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/devices`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsaHFnZHZubnN3bWh0bGptdXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiZXhwIjoyMDkzMTU0NzY1fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsaHFnZHZubnN3bWh0bGptdXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiZXhwIjoyMDkzMTU0NzY1fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsaHFnZHZubnN3bWh0bGptdXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiE5fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInR5cCI6InRlaHRobiQ3cCI6InJlZiI6InRlc3ZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiZXhwIjoyMDkzMTU0NzY1fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM',
             'Prefer': 'resolution=merge-duplicates'
           },
           body: JSON.stringify({
@@ -56,7 +56,6 @@ const CONVEX_URL = 'https://tlhqgdvnnswmhtljmuut.supabase.co';
         result.className = 'error';
       }
     }
-    }
     
     async function sendRandom() {
       const result = document.getElementById('result');
@@ -66,7 +65,7 @@ const CONVEX_URL = 'https://tlhqgdvnnswmhtljmuut.supabase.co';
       const lon = -17.4 + Math.random() * 0.1;
       
       try {
-        const response = await fetch(`${CONVEX_URL}/tracker/update`, {
+        const response = await fetch(`${SUPABASE_URL}/tracker/update`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
