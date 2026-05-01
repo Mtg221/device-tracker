@@ -32,7 +32,7 @@ const char* BACKEND_URL = "https://tlhqgdvnnswmhtljmuut.supabase.co";
 const char* BACKEND_ENDPOINT = "/rest/v1/devices";
 
 // Network settings
-const char* APN = "free";  // Replace with your carrier's APN
+const char* APN = "internet";  // Replace with your carrier's APN
 const char* GPRS_USER = "";
 const char* GPRS_PASS = "";
 

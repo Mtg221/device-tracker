@@ -37,21 +37,24 @@ export default function MapTracking() {
     }
   }, [])
 
-  async function fetchDevices() {
-    try {
-      const { data, error } = await supabase
-        .from('devices')
-        .select('*')
-        .order('last_update', { ascending: false })
-      
-      if (error) throw error
-      setDevices(data || [])
-    } catch (error) {
-      console.error('Error fetching devices:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+async function fetchDevices() {
+try {
+const { data, error } = await supabase
+.from('devices')
+.select('*')
+.order('last_update', { ascending: false })
+
+console.log('Fetched data:', data);
+console.log('Error:', error);
+
+if (error) throw error
+setDevices(data || [])
+} catch (error) {
+console.error('Error fetching devices:', error)
+} finally {
+setLoading(false)
+}
+}
 
   if (loading) {
     return <div className="map-container">Loading devices...</div>
