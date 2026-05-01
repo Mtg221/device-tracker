@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 /**
  * Arduino Bridge Server
- * Receives tracking data from Arduino via HTTP and forwards to Convex
+ * Receives tracking data from Arduino via HTTP and forwards to Supabase
  */
 
 import http from 'http';
 import https from 'https';
 
-const PORT = process.env.PORT || 3001;
-const CONVEX_URL = process.env.VITE_CONVEX_URL || 'https://dashing-crane-367.convex.cloud';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://tlhqgdvnnswmhtljmuut.supabase.co';
+const SUPABASE_SERVICE_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsaHFnZHZubnN3bWh0bGptdXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiZXhwIjoyMDkzMTU0NzY1fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM';
 
 console.log('🚀 Arduino Bridge Server');
 console.log('========================');
 console.log(`Port: ${PORT}`);
-console.log(`Convex URL: ${CONVEX_URL}`);
+console.log(`Supabase URL: ${SUPABASE_URL}`);
 console.log('');
 console.log('Endpoints:');
 console.log(`  POST http://localhost:${PORT}/track`);
@@ -44,7 +44,7 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({ 
       status: 'ok', 
       message: 'Bridge is running',
-      convexUrl: CONVEX_URL 
+      supabaseUrl: SUPABASE_URL 
     }));
     return;
   }
@@ -69,17 +69,17 @@ const server = http.createServer((req, res) => {
           return;
         }
 
-        // Forward to Convex
-        const result = await sendToConvex(data);
+        // Forward to Supabase
+        const result = await sendToSupabase(data);
         
         if (result.success) {
-          console.log(`✅ Sent to Convex`);
+          console.log(`✅ Sent to Supabase`);
           res.writeHead(200, { ...headers, 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, message: 'Data sent to Convex' }));
         } else {
-          console.error(`❌ Convex error: ${result.error}`);
+          console.error(`❌ Supabase error: ${result.error}`);
           res.writeHead(500, { ...headers, 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Failed to send to Convex', details: result.error }));
+          res.end(JSON.stringify({ error: 'Failed to send to Supabase', details: result.error }));
         }
       } catch (error) {
         console.error(`❌ Parse error: ${error.message}`);
@@ -96,33 +96,43 @@ const server = http.createServer((req, res) => {
 });
 
 /**
- * Forward tracking data to Convex HTTP endpoint
+ * Forward tracking data to Supabase HTTP endpoint
  */
-async function sendToConvex(data) {
+async function sendToSupabase(data) {
   return new Promise((resolve) => {
     try {
-      const url = new URL(CONVEX_URL);
-      
+      // Transform data to match Supabase schema
+      const supabaseData = {
+        device_id: data.deviceId,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        speed: data.speed || 0,
+        battery: data.battery || 0,
+        status: 'running'
+      };
+
       const req = https.request({
-        hostname: url.hostname,
+        hostname: SUPABASE_URL.replace('https://', '').replace('http://', '').replace('/', ''),
         port: 443,
-        path: '/tracker/update',
-        method: 'POST',
+        path: `/rest/v1/devices?device_id=eq.${data.deviceId}`, // Use device_id for upsert
+        method: 'PATCH', // Use PATCH for upsert
         headers: {
           'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(JSON.stringify(data)),
-          'Accept': 'application/json'
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Content-Length': Buffer.byteLength(JSON.stringify(supabaseData)),
+          'Prefer': 'resolution=merge-duplicates' // This enables upsert behavior
         }
       }, (res) => {
         let responseData = '';
         res.on('data', chunk => { responseData += chunk; });
         res.on('end', () => {
-          if (res.statusCode === 200) {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
             resolve({ success: true, data: responseData });
           } else {
             resolve({ 
               success: false, 
-              error: `Convex returned ${res.statusCode}: ${responseData || 'No response body'}` 
+              error: `Supabase returned ${res.statusCode}: ${responseData || 'No response body'}` 
             });
           }
         });
@@ -137,7 +147,7 @@ async function sendToConvex(data) {
         resolve({ success: false, error: 'Request timeout' });
       });
 
-      req.write(JSON.stringify(data));
+      req.write(JSON.stringify(supabaseData));
       req.end();
     } catch (error) {
       resolve({ success: false, error: error.message });
@@ -149,10 +159,9 @@ async function sendToConvex(data) {
 server.listen(PORT, () => {
   console.log('');
   console.log('✅ Server is ready!');
-  console.log('');
   console.log('Test with:');
   console.log(`  curl http://localhost:${PORT}/health`);
-  console.log(`  curl -X POST http://localhost:${PORT}/track -H "Content-Type: application/json" -d '{"deviceId":"test","latitude":14.7,"longitude":-17.4,"battery":85}'`);
+  console.log(`  curl -X POST http://localhost:${PORT}/track -H "Content-Type: application/json" -d '{"deviceId":"...","latitude":14.7,"longitude":-17.4,"battery":85}'`);
   console.log('');
 });
 

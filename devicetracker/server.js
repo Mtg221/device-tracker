@@ -1,4 +1,4 @@
-// Simple Express server to receive data from Arduino and send to Convex
+// Simple Express server to receive data from Arduino and send to Supabase
 const express = require('express');
 const { ConvexClient } = require('convex/node');
 const cors = require('cors');
@@ -10,9 +10,10 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Convex client setup
-const convexUrl = process.env.VITE_CONVEX_URL || 'https://dashing-crane-367.convex.cloud';
-console.log('Convex URL:', convexUrl);
+// Supabase configuration
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://tlhqgdvnnswmhtljmuut.supabase.co';
+const supabaseServiceKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsaHFnZHZubnN3bWh0bGptdXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiZXhwIjoyMDkzMTU0NzY1fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM';
+console.log('Supabase URL:', supabaseUrl);
 
 // Endpoint for Arduino to POST tracking data
 app.post('/api/track', (req, res) => {
@@ -20,19 +21,34 @@ app.post('/api/track', (req, res) => {
   
   console.log('Received tracking data:', { deviceId, latitude, longitude, speed, battery });
   
-  // Send to Convex using fetch (simpler than ConvexClient for server)
-  fetch(`${convexUrl}/tracker/update`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ deviceId, latitude, longitude, speed, battery })
+  // Prepare data for Supabase
+  const supabaseData = {
+    device_id: deviceId,
+    latitude: latitude,
+    longitude: longitude,
+    speed: speed || 0,
+    battery: battery || 0,
+    status: 'running'
+  };
+
+  // Send to Supabase using fetch
+  fetch(`${supabaseUrl}/rest/v1/devices?device_id=eq.${deviceId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': supabaseServiceKey,
+      'Authorization': `Bearer ${supabaseServiceKey}`,
+      'Prefer': 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify(supabaseData)
   })
   .then(response => {
     if (response.ok) {
-      console.log('✓ Sent to Convex successfully');
+      console.log('✓ Sent to Supabase successfully');
       res.json({ success: true });
     } else {
-      console.error('✗ Failed to send to Convex:', response.status);
-      res.status(500).json({ error: 'Failed to send to Convex' });
+      console.error('✗ Failed to send to Supabase:', response.status);
+      res.status(500).json({ error: 'Failed to send to Supabase' });
     }
   })
   .catch(error => {

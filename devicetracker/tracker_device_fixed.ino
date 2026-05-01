@@ -10,7 +10,7 @@ double parseLongitude(String gpsResponse);
 bool sendDataToConvex(double lat, double lon, int battery);
 
 // Device configuration
-#define DEVICE_ID "TRACK001"  // Change this for each device
+#define DEVICE_ID "2AJYU-SIM7000G" // Unique device identifier
 // To configure your device:
 // 1. Change DEVICE_ID to a unique identifier for each tracker
 // 2. Update APN settings for your cellular carrier

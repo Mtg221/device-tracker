@@ -12,7 +12,7 @@
 </head>
 <body>
   <h1>📍 Test Device Tracker</h1>
-  <p>Testing Convex endpoint: <strong>dashing-crane-367.convex.cloud</strong></p>
+  <p>Testing Supabase endpoint: <strong>tlhqgdvnnswmhtljmuut.supabase.co</strong></p>
   
   <button class="btn success" onclick="sendTest()">Send Test Data</button>
   <button class="btn" onclick="sendRandom()">Send Random Location</button>
@@ -20,7 +20,7 @@
   <div id="result"></div>
   
   <script>
-    const CONVEX_URL = 'https://dashing-crane-367.convex.cloud';
+const CONVEX_URL = 'https://tlhqgdvnnswmhtljmuut.supabase.co';
     
     async function sendTest() {
       const result = document.getElementById('result');
@@ -28,14 +28,21 @@
       result.className = '';
       
       try {
-        const response = await fetch(`${CONVEX_URL}/tracker/update`, {
+        const response = await fetch(`${CONVEX_URL}/rest/v1/devices`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsaHFnZHZubnN3bWh0bGptdXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiZXhwIjoyMDkzMTU0NzY1fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsaHFnZHZubnN3bWh0bGptdXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiZXhwIjoyMDkzMTU0NzY1fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM',
+            'Prefer': 'resolution=merge-duplicates'
+          },
           body: JSON.stringify({
-            deviceId: '2AJYU-SIM7000G',
+            device_id: '2AJYU-SIM7000G',
             latitude: 14.7167,
             longitude: -17.4677,
-            battery: 85
+            speed: 0,
+            battery: 85,
+            status: 'running'
           })
         });
         
@@ -48,6 +55,7 @@
         result.innerHTML = '❌ Error: ' + e.message;
         result.className = 'error';
       }
+    }
     }
     
     async function sendRandom() {

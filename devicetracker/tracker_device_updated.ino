@@ -18,18 +18,15 @@
 // Serial communication
 HardwareSerial SerialAT(1);
 
-// Convex endpoint - Using Go relay server (same as bus-tracking-iot-main)
-// Relay server forwards GPS data to Convex over HTTPS
-// See: bus-tracking-iot-main/examples/HttpsBuiltlnPostConvex/HttpsBuiltlnPostConvex.ino
-#define RELAY_HOST "24.144.96.134"
-#define RELAY_PORT "8345"
-#define RELAY_PATH "/gps"
-#define DEVICE_ID "2AJYU-SIM7000G"  // Unique device identifier
+// Supabase configuration
+#define SUPABASE_URL "https://tlhqgdvnnswmhtljmuut.supabase.co"
+#define SUPABASE_KEY "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsaHFnZHZubnN3bWh0bGptdXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiZXhwIjoyMDkzMTU0NzY1fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM"
+#define DEVICE_ID "2AJYU-SIM7000G" // Unique device identifier
 
-// Network settings - APN for Free Mobile
-const char* APN = "free";  // Free Mobile APN
-const char* GPRS_USER = "free";  // Free Mobile username
-const char* GPRS_PASS = "free";  // Free Mobile password
+// Network settings - APN for Orange Senegal
+const char* APN = "internet"; // Orange Senegal APN
+const char* GPRS_USER = "";
+const char* GPRS_PASS = "";
 
 // Tracking settings
 unsigned long TRACKING_INTERVAL = 30000; // 30 seconds
@@ -86,11 +83,26 @@ void setupGPS() {
   Serial.println("Initializing GPS...");
 
   // Power on GPS
-  sendATCommand("AT+CGNSPWR=1");
+  Serial.println("Powering on GPS...");
+  if (sendATCommand("AT+CGNSPWR=1")) {
+    Serial.println("GPS powered on successfully");
+  } else {
+    Serial.println("Failed to power on GPS");
+  }
   delay(1000);
 
-  // Set GPS update rate to 1Hz (optional)
-  sendATCommand("AT+CGNSINF=1");
+  // Set GPS update rate to 1Hz
+  Serial.println("Setting GPS update rate...");
+  if (sendATCommand("AT+CGNSINF=1")) {
+    Serial.println("GPS update rate set to 1Hz");
+  } else {
+    Serial.println("Failed to set GPS update rate");
+  }
+  delay(1000);
+
+  // Check initial GPS status
+  Serial.println("Checking initial GPS status...");
+  sendATCommand("AT+CGNSINF");
   delay(1000);
 
   Serial.println("GPS initialized, waiting for fix...");
@@ -100,19 +112,22 @@ void connectToNetwork() {
   Serial.println("Connecting to network...");
 
   // Check if SIM is ready
+  Serial.println("Checking SIM status...");
   int retryCount = 0;
   while (!sendATCommand("AT+CPIN?") && retryCount < 3) {
+    Serial.println("SIM not ready, retrying...");
     delay(1000);
     retryCount++;
   }
   if (retryCount >= 3) {
-    Serial.println("SIM not ready or not responding");
+    Serial.println("SIM not ready or not responding after 3 attempts");
     return;
   }
 
   // Wait for network registration
   Serial.println("Waiting for network registration...");
   retryCount = 0;
+  bool registered = false;
   while (retryCount < 30) { // Try for 30 seconds
     String response = "";
     sendATCommand("AT+CREG?");
@@ -128,33 +143,47 @@ void connectToNetwork() {
     
     // Check if registered (response contains +CREG: 0,1 or +CREG: 0,5)
     if (response.indexOf("+CREG: 0,1") != -1 || response.indexOf("+CREG: 0,5") != -1) {
-      Serial.println("Network registered");
+      Serial.println("Network registered successfully");
+      registered = true;
       break;
     }
     delay(1000);
     retryCount++;
   }
 
+  if (!registered) {
+    Serial.println("Failed to register to network after 30 seconds");
+    return;
+  }
+
   // Set APN
   Serial.println("Setting APN...");
-  sendATCommand("AT+CGSOCKCONT=1,\"IP\",\"" + String(APN) + "\"");
+  if (sendATCommand("AT+CGSOCKCONT=1,\"IP\",\"" + String(APN) + "\"")) {
+    Serial.println("APN set successfully");
+  } else {
+    Serial.println("Failed to set APN");
+  }
   delay(1000);
 
   // Activate PDP context
   Serial.println("Activating PDP context...");
-  sendATCommand("AT+CGACT=1,1");
+  if (sendATCommand("AT+CGACT=1,1")) {
+    Serial.println("PDP context activated successfully");
+  } else {
+    Serial.println("Failed to activate PDP context");
+  }
   delay(2000);
 
   // Check if connected
   if (sendATCommand("AT+CGATT?")) {
-    Serial.println("Connected to network");
+    Serial.println("Connected to network successfully");
   } else {
     Serial.println("Failed to connect to network");
   }
 }
 
 void sendTrackingData() {
-  Serial.println("Sending tracking data...");
+  Serial.println("=== Sending tracking data ===");
 
   // Get GPS data directly from SIM7000G
   Serial.println("Requesting GPS data...");
@@ -174,10 +203,12 @@ void sendTrackingData() {
     delay(10);
   }
 
+  Serial.print("Raw GPS Response: ");
+  Serial.println(gpsResponse);
+
   // Parse GPS data if we got a response
   if (gpsResponse.length() > 0 && gpsResponse.indexOf("+CGNSINF:") != -1) {
-    Serial.print("GPS Response: ");
-    Serial.println(gpsResponse);
+    Serial.println("Parsing GPS data...");
     parseGPSData(gpsResponse);
   } else {
     Serial.println("No valid GPS response");
@@ -195,68 +226,105 @@ void sendTrackingData() {
 
   int battery = getBatteryLevel();
 
-  Serial.print("Sending GPS: ");
+  Serial.print("Final data to send - GPS Valid: ");
+  Serial.print(gpsValid ? "YES" : "NO");
+  Serial.print(", Lat: ");
   Serial.print(latitude, 6);
-  Serial.print(", ");
-  Serial.println(longitude, 6);
+  Serial.print(", Lon: ");
+  Serial.print(longitude, 6);
+  Serial.print(", Battery: ");
+  Serial.println(battery);
 
   // Send data to Convex
-  if (sendDataToConvex(latitude, longitude, battery)) {
+  if (sendDataToSupabase(latitude, longitude, battery)) {
     Serial.println("Data sent successfully");
   } else {
     Serial.println("Failed to send data");
   }
+  
+  Serial.println("=== End tracking data ===");
 }
 
-bool sendDataToConvex(double lat, double lon, int battery) {
-  Serial.println("Sending GPS data to relay server...");
+bool sendDataToSupabase(double lat, double lon, int battery) {
+  Serial.println("Sending GPS data to Supabase...");
 
-  // Build URL for relay server (plain HTTP GET, same as bus-tracking-iot-main)
-  char url[256];
-  snprintf(url, sizeof(url), 
-    "http://%s:%s%s?latitude=%.6f&longitude=%.6f&speed=%.2f&altitude=0.0&device_id=%s&battery=%d",
-    RELAY_HOST, RELAY_PORT, RELAY_PATH, lat, lon, speed, DEVICE_ID, battery);
+  // Build JSON payload for upsert
+  String jsonData = String("{\"device_id\":\"") + DEVICE_ID + 
+                  String("\",\"latitude\":") + String(lat, 6) +
+                  String(",\"longitude\":") + String(lon, 6) +
+                  String(",\"speed\":") + String(speed, 1) +
+                  String(",\"battery\":") + String(battery) +
+                  String(",\"status\":\"running\"}");
   
-  Serial.print("Relay URL: ");
-  Serial.println(url);
+  // For upsert operation
+  String upsertData = String("{\"on_conflict\":\"device_id\"}";
+
+  Serial.print("Sending to Supabase: ");
+  Serial.println(jsonData);
 
   // End any existing HTTP session
   sendATCommand("AT+HTTPTERM", 2000);
   delay(500);
 
   // Initialize HTTP session
-  sendATCommand("AT+HTTPINIT");
   if (!sendATCommand("AT+HTTPINIT", 3000)) {
     Serial.println("HTTP init failed");
+    sendATCommand("AT+HTTPTERM");
     return false;
   }
-  delay(500);
+  delay(1000);
 
-  // Set bearer (CID=1 for SAPBR)
+  // Set bearer
   sendATCommand("AT+HTTPPARA=\"CID\",1");
   delay(500);
 
-  // Set URL
-  String urlCmd = String("AT+HTTPPARA=\"URL\",\"") + String(url) + String("\"");
+  // Set URL for Supabase REST API with upsert
+  String supabaseUrl = String(SUPABASE_URL) + "/rest/v1/devices?on_conflict=device_id";
+  String urlCmd = "AT+HTTPPARA=\"URL\",\"" + supabaseUrl + "\"";
   sendATCommand(urlCmd);
   delay(1000);
 
-  // Execute HTTP GET
-  sendATCommand("AT+HTTPACTION=0");
+  // Set headers for Supabase
+  sendATCommand("AT+HTTPPARA=\"HEADER\",\"apikey: " + String(SUPABASE_KEY) + "\"");
+  delay(500);
   
-  // Wait for +HTTPACTION response
+  sendATCommand("AT+HTTPPARA=\"HEADER\",\"Authorization: Bearer " + String(SUPABASE_KEY) + "\"");
+  delay(500);
+  
+  sendATCommand("AT+HTTPPARA=\"HEADER\",\"Content-Type: application/json\"");
+  delay(500);
+  
+  sendATCommand("AT+HTTPPARA=\"HEADER\",\"Prefer: resolution=merge-duplicates\"");
+  delay(500);
+
+  // Set HTTP method to POST
+  sendATCommand("AT+HTTPMETHOD=\"POST\"");
+  delay(500);
+
+  // Send data length
+  String dataLenCmd = "AT+HTTPDATA=" + String(jsonData.length());
+  sendATCommand(dataLenCmd);
+  delay(500);
+  
+  // Send actual data
+  SerialAT.print(jsonData);
+  delay(2000);
+
+  // Execute HTTP POST
+  sendATCommand("AT+HTTPACTION=1");
+  
+  // Wait for response
   String response = "";
   unsigned long startTime = millis();
   int statusCode = -1;
   
-  while (millis() - startTime < 30000UL && statusCode == -1) {
+  while (millis() - startTime < 30000UL) {
     while (SerialAT.available()) {
       char c = SerialAT.read();
       response += c;
       if (c == '\n') {
         int idx = response.indexOf("+HTTPACTION:");
         if (idx >= 0) {
-          // Parse status code: +HTTPACTION: 0,200,...
           int firstComma = response.indexOf(',', idx);
           if (firstComma != -1) {
             int secondComma = response.indexOf(',', firstComma + 1);
@@ -277,11 +345,12 @@ bool sendDataToConvex(double lat, double lon, int battery) {
   sendATCommand("AT+HTTPTERM");
   delay(500);
 
-  if (statusCode == 200 || statusCode == 201) {
-    Serial.printf("GPS data sent successfully (HTTP %d)\n", statusCode);
+  if (statusCode == 200 || statusCode == 201 || statusCode == 204) {
+    Serial.printf("Data sent to Supabase successfully (HTTP %d)\n", statusCode);
     return true;
   } else {
-    Serial.printf("Failed to send GPS data (HTTP %d)\n", statusCode);
+    Serial.printf("Failed to send to Supabase (HTTP %d)\n", statusCode);
+    Serial.println("Response: " + response);
     return false;
   }
 }
@@ -331,7 +400,7 @@ int getBatteryLevel() {
 
   Serial.println("Battery Response: " + response);
 
-  // Parse battery level from response
+// Parse battery level from response
   // Response format: +CBC: <bcs>,<bcl>,<voltage>
   // <bcl> is battery charge level (0-100)
   int bclIndex = response.indexOf("+CBC:");
@@ -381,7 +450,7 @@ void processATResponse() {
 
 void parseGPSData(String response) {
   // Parse GPS data from +CGNSINF response
-  // Format: +CGNSINF: <GNSS run status>,<Fix status>,<UTC date & time>,<Latitude>,<Longitude>,...
+  // Format: +CGNSINF: <GNSS run status>,<Fix status>,<UTC date & Time>,<Latitude>,<Longitude>,<Msl altitude>,<Speed Over Ground>,<Course Over Ground>,<Fix Mode>,<Reserved1>,<HDOP>,<PDOP>,<VDOP>,<Reserved2>,<GNSS Satellites in fix>,<Reserved3>,<GNSS Satellites viewed>,<Reserved4>,<HPA>,<VPA>
   int start = response.indexOf("+CGNSINF:");
   if (start != -1) {
     // Find the position after "+CGNSINF:"
@@ -415,15 +484,15 @@ void parseGPSData(String response) {
     fieldEnds[fieldCount] = response.length();
     fieldCount++;
 
-    // Field 4 is latitude (index 4), field 5 is longitude (index 5)
+    // Field 3 is latitude (index 3), field 4 is longitude (index 4)
     // +CGNSINF: runStatus,fixStatus,dateTime,latitude,longitude,satellites,hdop,altitude,speed,...
-    if (fieldCount > 5) {
-      // Extract latitude (field 4)
-      String latStr = response.substring(fieldStarts[4], fieldEnds[4]);
+    if (fieldCount > 4) {
+      // Extract latitude (field 3)
+      String latStr = response.substring(fieldStarts[3], fieldEnds[3]);
       latStr.trim();
 
-      // Extract longitude (field 5)
-      String lonStr = response.substring(fieldStarts[5], fieldEnds[5]);
+      // Extract longitude (field 4)
+      String lonStr = response.substring(fieldStarts[4], fieldEnds[4]);
       lonStr.trim();
 
       // Check if we have valid data (not empty)
@@ -431,8 +500,10 @@ void parseGPSData(String response) {
         double newLat = latStr.toDouble();
         double newLon = lonStr.toDouble();
 
-        // Only update if coordinates are valid (not 0,0)
-        if (newLat != 0.0 || newLon != 0.0) {
+        // Only update if coordinates are valid (not 0,0 and within reasonable bounds)
+        if ((newLat != 0.0 || newLon != 0.0) && 
+            (newLat >= -90.0 && newLat <= 90.0) && 
+            (newLon >= -180.0 && newLon <= 180.0)) {
           latitude = newLat;
           longitude = newLon;
           gpsValid = true;
@@ -440,6 +511,8 @@ void parseGPSData(String response) {
           Serial.print(latitude, 6);
           Serial.print(", Lon: ");
           Serial.println(longitude, 6);
+        } else {
+          Serial.println("GPS data out of range or invalid, keeping previous values");
         }
       }
     }
