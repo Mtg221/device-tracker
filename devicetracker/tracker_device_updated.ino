@@ -2,26 +2,6 @@
 
 // Device configuration
 #define DEVICE_ID "2AJYU-SIM7000G" // Unique device identifier
-// To configure your device:
-// 1. Change DEVICE_ID to a unique identifier for each tracker
-// 2. Update APN settings for your cellular carrier
-// 3. Ensure SIM card is properly inserted
-// 4. Connect to power source (USB or battery)
-
-// SIM7000G pins
-#define MODEM_RST            5
-#define MODEM_PWRKEY         4
-#define MODEM_POWER_ON       23
-#define MODEM_TX             27
-#define MODEM_RX             26
-
-// Serial communication
-HardwareSerial SerialAT(1);
-
-// Supabase configuration
-#define SUPABASE_URL "https://tlhqgdvnnswmhtljmuut.supabase.co"
-#define SUPABASE_KEY "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsaHFnZHZubnN3bWh0bGptdXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU3ODc2NSwiZXhwIjoyMDkzMTU0NzY1fQ.qRAyDyXclLYQibJtjPwkJRv3iUR7bwXBF7fX0Df0qrM"
-#define DEVICE_ID "2AJYU-SIM7000G" // Unique device identifier
 
 // Network settings - APN for Orange Senegal
 const char* APN = "internet"; // Orange Senegal APN
