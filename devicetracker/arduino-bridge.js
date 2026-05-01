@@ -75,7 +75,7 @@ const server = http.createServer((req, res) => {
         if (result.success) {
           console.log(`✅ Sent to Supabase`);
           res.writeHead(200, { ...headers, 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true, message: 'Data sent to Convex' }));
+          res.end(JSON.stringify({ success: true, message: 'Data sent to Supabase' }));
         } else {
           console.error(`❌ Supabase error: ${result.error}`);
           res.writeHead(500, { ...headers, 'Content-Type': 'application/json' });

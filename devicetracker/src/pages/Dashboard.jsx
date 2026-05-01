@@ -1,12 +1,45 @@
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
 import { MapPin, Activity, AlertCircle, CheckCircle } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "./Dashboard.css";
 
 export default function Dashboard() {
-  const devices = useQuery(api.devices.getAll) || [];
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    fetchDevices();
+    
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('devices')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'devices' }, () => {
+        fetchDevices();
+      })
+      .subscribe();
+    
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
+  
+  async function fetchDevices() {
+    try {
+      const { data, error } = await supabase
+        .from('devices')
+        .select('*')
+        .order('last_update', { ascending: false });
+      
+      if (error) throw error;
+      setDevices(data || []);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching devices:', error);
+      setLoading(false);
+    }
+  }
   
   const stats = {
     total: devices.length,

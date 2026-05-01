@@ -235,7 +235,7 @@ void sendTrackingData() {
   Serial.print(", Battery: ");
   Serial.println(battery);
 
-  // Send data to Convex
+  // Send data to Supabase
   if (sendDataToSupabase(latitude, longitude, battery)) {
     Serial.println("Data sent successfully");
   } else {

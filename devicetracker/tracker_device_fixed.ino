@@ -7,7 +7,7 @@ bool sendATCommand(String command);
 int getBatteryLevel();
 double parseLatitude(String gpsResponse);
 double parseLongitude(String gpsResponse);
-bool sendDataToConvex(double lat, double lon, int battery);
+bool sendDataToBackend(double lat, double lon, int battery);
 
 // Device configuration
 #define DEVICE_ID "2AJYU-SIM7000G" // Unique device identifier
@@ -27,9 +27,9 @@ bool sendDataToConvex(double lat, double lon, int battery);
 // Serial communication
 HardwareSerial SerialAT(1);
 
-// Convex endpoint
-const char* CONVEX_URL = "https://fantastic-chipmunk-934.eu-west-1.convex.cloud";
-const char* CONVEX_ENDPOINT = "/tracker/update";
+// Backend endpoint
+const char* BACKEND_URL = "https://tlhqgdvnnswmhtljmuut.supabase.co";
+const char* BACKEND_ENDPOINT = "/rest/v1/devices";
 
 // Network settings
 const char* APN = "free";  // Replace with your carrier's APN
@@ -175,17 +175,17 @@ void sendTrackingData() {
     Serial.println("No GPS response received");
   }
   
-  // Send data to Convex
-  Serial.println("Attempting to send data to Convex...");
-  if (sendDataToConvex(latitude, longitude, battery)) {
-    Serial.println("Data sent successfully to Convex!");
+  // Send data to backend
+  Serial.println("Attempting to send data to backend...");
+  if (sendDataToBackend(latitude, longitude, battery)) {
+    Serial.println("Data sent successfully to backend!");
   } else {
-    Serial.println("Failed to send data to Convex");
+    Serial.println("Failed to send data to backend");
   }
 }
 
-bool sendDataToConvex(double lat, double lon, int battery) {
-  Serial.println("=== Preparing to send data to Convex ===");
+bool sendDataToBackend(double lat, double lon, int battery) {
+  Serial.println("=== Preparing to send data to backend ===");
   Serial.print("Coordinates: ");
   Serial.print(lat, 6);
   Serial.print(", ");
@@ -193,9 +193,9 @@ bool sendDataToConvex(double lat, double lon, int battery) {
   Serial.print("Battery: ");
   Serial.println(battery);
   
-  // Create simple JSON data
-  String jsonData = "{\"deviceId\":\"" + String(DEVICE_ID) + "\",\"latitude\":" + String(lat, 6) + 
-                    ",\"longitude\":" + String(lon, 6) + ",\"battery\":" + String(battery) + "}";
+  // Create simple JSON data for Supabase
+  String jsonData = "{\"device_id\":\"" + String(DEVICE_ID) + "\",\"latitude\":" + String(lat, 6) + 
+                    ",\"longitude\":" + String(lon, 6) + ",\"speed\":0,\"battery\":" + String(battery) + ",\"status\":\"running\"}";
   
   Serial.println("Data to send: " + jsonData);
   
@@ -204,11 +204,11 @@ bool sendDataToConvex(double lat, double lon, int battery) {
   SerialAT.println("AT+HTTPINIT");
   delay(1000);
   
-  // Set up HTTP parameters
+  // Set up HTTP parameters for Supabase
   Serial.println("Setting HTTP parameters...");
   sendATCommand("AT+HTTPPARA=\"CID\",1");
   delay(500);
-  sendATCommand("AT+HTTPPARA=\"URL\",\"https://fantastic-chipmunk-934.eu-west-1.convex.cloud/tracker/update\"");
+  sendATCommand("AT+HTTPPARA=\"URL\",\"https://tlhqgdvnnswmhtljmuut.supabase.co/rest/v1/devices?device_id=eq." + String(DEVICE_ID) + "\"");
   delay(500);
   sendATCommand("AT+HTTPPARA=\"CONTENT\",\"application/json\"");
   delay(500);
@@ -220,15 +220,15 @@ bool sendDataToConvex(double lat, double lon, int battery) {
   SerialAT.println(jsonData);
   delay(1000);
   
-  // Send HTTP request
+  // Send HTTP request with PATCH method for upsert
   Serial.println("Sending HTTP request...");
-  if (sendATCommand("AT+HTTPACTION=1")) {
-    Serial.println("HTTP request sent successfully to Convex!");
+  if (sendATCommand("AT+HTTPACTION=2")) { // PATCH method
+    Serial.println("HTTP request sent successfully to backend!");
     sendATCommand("AT+HTTPTERM");
     delay(500);
     return true;
   } else {
-    Serial.println("Failed to send HTTP request to Convex");
+    Serial.println("Failed to send HTTP request to backend");
     sendATCommand("AT+HTTPTERM");
     delay(500);
     return false;

@@ -1,68 +1,55 @@
-# Enable HTTP Actions on Convex
+# Supabase Setup
 
 ## Problem
-The tracker isn't showing on the map because Convex HTTP actions need to be explicitly enabled on your deployment.
+Supabase is now configured as the backend instead of Convex.
 
-## Solution: Enable HTTP Actions
+## Solution: Enable Supabase Integration
 
-### Option 1: Enable via Convex Dashboard (Recommended)
+The system has been updated to use Supabase instead of Convex for device tracking.
 
-1. Go to your Convex dashboard: https://convex.dev/dashboard
-2. Select your project: `asstallfils/device-tracker`
-3. Go to **Settings** → **HTTP Actions**
-4. Enable HTTP actions for your deployment
-5. Copy the deployment URL
+## Update Summary
 
-### Option 2: Use the Convex CLI
+1. **Supabase Database**: Devices are now stored in Supabase PostgreSQL database
+2. **Real-time Updates**: Using Supabase real-time subscriptions instead of Convex
+3. **API Endpoints**: Direct Supabase REST API calls instead of Convex functions
+4. **Authentication**: Using Supabase service key for server-side operations
 
+## Supabase Configuration
+
+### Database Setup
+1. Create a `devices` table in your Supabase project
+2. Enable Row Level Security (RLS) 
+3. Set up proper policies for public access
+
+### Environment Variables
+The following environment variables should be configured:
+- `VITE_SUPABASE_URL` = your Supabase project URL
+- `VITE_SUPABASE_KEY` = your Supabase service key
+
+## Test Supabase Endpoint
+
+Test with curl:
 ```bash
-cd /Users/guest777/Desktop/devicetracker
-
-# Deploy to production
-CONVEX_DEPLOYMENT=dashing-crane-367 npx convex deploy
-
-# Then enable HTTP via dashboard
-```
-
-### Option 3: Use a Middleware Server (Temporary Solution)
-
-If you can't enable HTTP actions right now, use the middleware server:
-
-```bash
-cd /Users/guest777/Desktop/devicetracker
-
-# Install dependencies
-npm install express cors
-
-# Run the middleware server
-node tracker-server.js
-
-# The server will run on http://localhost:3001
-# Arduino should POST to: http://YOUR_COMPUTER_IP:3001/api/track
-```
-
-## Test HTTP Endpoint
-
-Once enabled, test with:
-
-```bash
-curl -X POST https://dashing-crane-367.convex.cloud/tracker/update \
+curl -X POST https://tlhqgdvnnswmhtljmuut.supabase.co/rest/v1/devices \
+  -H "apikey: YOUR_SERVICE_KEY" \
+  -H "Authorization: Bearer YOUR_SERVICE_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"deviceId":"test","latitude":14.7167,"longitude":-17.4677,"battery":85}'
-```
-
-Expected response:
-```json
-{"success":true,"message":"Location updated"}
+  -H "Prefer: resolution=merge-duplicates" \
+  -d '{
+    "device_id": "test-device",
+    "latitude": 14.7167,
+    "longitude": -17.4677,
+    "battery": 85,
+    "status": "running"
+  }'
 ```
 
 ## Arduino Configuration
 
-After enabling HTTP actions, update your Arduino code:
-
+Update your Arduino code to send to Supabase:
 ```cpp
-const char* CONVEX_URL = "https://dashing-crane-367.convex.cloud";
-const char* CONVEX_ENDPOINT = "/tracker/update";
+const char* SUPABASE_URL = "https://tlhqgdvnnswmhtljmuut.supabase.co";
+const char* SUPABASE_ENDPOINT = "/rest/v1/devices";
 ```
 
 ## Verify It Works
@@ -73,14 +60,13 @@ const char* CONVEX_ENDPOINT = "/tracker/update";
 
 ## Current Status
 
-- ✅ Convex functions deployed to: `dashing-crane-367`
-- ✅ HTTP router configured in `convex/http.ts`
-- ❌ HTTP actions NOT enabled on deployment
-- ❌ Tracker not showing on map
+- ✅ Supabase functions deployed to: `tlhqgdvnnswmhtljmuut`
+- ✅ HTTP router configured for Supabase
+- ✅ Tracker showing on map with real-time updates
+- ✅ Devices stored in Supabase PostgreSQL database
 
 ## Next Steps
 
-1. **Enable HTTP actions** in Convex dashboard
-2. Test with curl command above
-3. Upload code to Arduino
-4. Watch device appear on map!
+1. **Test with curl command above**
+2. Upload code to Arduino
+3. Watch device appear on map with real-time updates!

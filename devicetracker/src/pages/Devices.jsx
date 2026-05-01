@@ -1,14 +1,63 @@
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useState, useEffect } from "react";
+import { supabase } from '../supabaseClient';
+import DevicesTable from "../components/DevicesTable";
+import Header from "../components/Header";
+import "./Devices.css";
+
+import { useState, useEffect } from "react";
+import { supabase } from '../supabaseClient';
 import DevicesTable from "../components/DevicesTable";
 import Header from "../components/Header";
 import "./Devices.css";
 
 export default function DevicesPage() {
-  const devices = useQuery(api.devices.getAll);
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  if (devices === undefined) {
-    return <div>Loading devices...</div>;
+  useEffect(() => {
+    fetchDevices();
+  }, []);
+
+  async function fetchDevices() {
+    const { data, error } = await supabase
+      .from('devices')
+      .select('*')
+      .order('last_update', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching devices:', error);
+      return;
+    }
+    
+    setDevices(data || []);
+  }
+
+  return (
+    <div className="devices-page">
+      <Header onAddDevice={() => console.log("Add device")} />
+      <div className="devices-content">
+        <h1>Devices</h1>
+        <DevicesTable devices={devices} />
+      </div>
+    </div>
+  );
+}
+    
+    setDevices(data || []);
+  }
+
+  return (
+    <div className="devices-page">
+      <Header onAddDevice={() => console.log("Add device")} />
+      <div className="devices-content">
+        <h1>Devices</h1>
+        <DevicesTable devices={devices} />
+      </div>
+    </div>
+  );
+}
+    
+    setDevices(data || []);
   }
 
   if (devices === null) {

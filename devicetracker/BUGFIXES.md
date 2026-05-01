@@ -54,5 +54,5 @@ Fixed 7 critical bugs in the Arduino device tracker code for the SIM7000G GPS/GP
 Before deploying:
 1. Update `DEVICE_ID` with unique identifier
 2. Set correct `APN` for your cellular carrier
-3. Verify Convex endpoint URLs
+3. Verify Supabase endpoint URLs
 4. Test with your specific SIM7000G hardware revision

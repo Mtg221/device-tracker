@@ -74,7 +74,7 @@ const server = http.createServer((req, res) => {
   res.end('Not found');
 });
 
-async function forwardToConvex(data) {
+async function forwardToBackend(data) {
   try {
     const url = new URL(CONVEX_URL);
     

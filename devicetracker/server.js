@@ -1,6 +1,5 @@
 // Simple Express server to receive data from Arduino and send to Supabase
 const express = require('express');
-const { ConvexClient } = require('convex/node');
 const cors = require('cors');
 
 const app = express();

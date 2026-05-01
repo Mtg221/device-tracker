@@ -1,10 +1,11 @@
-import { ConvexProvider, ConvexReactClient } from "convex/react";
-import { createContext, useContext } from "react";
+import { createClient } from '@supabase/supabase-js'
+import { useState, useEffect } from 'react'
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+// Create a Supabase client instead of Convex client
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)
 
-export function ConvexProviderWrapper({ children }) {
-  return <ConvexProvider client={convex}>{children}</ConvexProvider>;
+export function useSupabaseClient() {
+  return supabase
 }
 
 export function useConvexClient() {
