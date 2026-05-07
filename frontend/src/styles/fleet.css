@@ -1,0 +1,213 @@
+.search-section { padding: 3rem 2.5rem; max-width: 1100px; margin: 0 auto; }
+.search-bar {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem 1.5rem;
+  display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;
+}
+.search-group { flex: 1; min-width: 160px; }
+.search-group label {
+  display: block; font-size: 0.75rem; color: var(--muted);
+  margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1px;
+}
+.search-group input, .search-group select {
+  width: 100%; background: var(--black); border: 1px solid var(--border);
+  color: var(--white); padding: 0.65rem 0.85rem; border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none;
+  transition: border-color 0.2s;
+}
+.search-group input:focus, .search-group select:focus { border-color: var(--gold); }
+.search-group select option { background: var(--dark); }
+
+.filters-row {
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.filter-chip {
+  padding: 0.5rem 1.1rem; border-radius: 50px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-size: 0.85rem; cursor: pointer;
+  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+}
+.filter-chip:hover, .filter-chip.active {
+  background: var(--gold); border-color: var(--gold);
+  color: var(--black); font-weight: 600;
+}
+
+.cars-section { padding: 2rem 2.5rem 5rem; max-width: 1200px; margin: 0 auto; }
+.cars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+
+.car-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  transition: all 0.3s; cursor: pointer;
+}
+.car-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+
+.car-img { width: 100%; height: 200px; object-fit: cover; background: #1a1a1a; display: block; }
+.car-body { padding: 1.25rem; }
+.car-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+.car-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+.car-year { color: var(--muted); font-size: 0.8rem; }
+.car-category {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+  padding: 0.25rem 0.65rem; border-radius: 50px;
+  background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.2);
+}
+.car-desc { color: var(--muted); font-size: 0.85rem; margin: 0.5rem 0 1rem; line-height: 1.5; }
+.car-specs { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+.car-spec { display: flex; align-items: center; gap: 0.35rem; color: var(--muted); font-size: 0.8rem; }
+.car-spec svg { width: 14px; height: 14px; }
+.car-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 1rem; }
+.car-price { font-size: 1.3rem; font-weight: 700; color: var(--gold); }
+.car-price small { font-size: 0.7rem; color: var(--muted); font-weight: 400; }
+.btn-book {
+  background: var(--gold); color: var(--black);
+  border: none; padding: 0.55rem 1.2rem; border-radius: 8px;
+  font-weight: 600; font-size: 0.85rem; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+}
+.btn-book:hover { background: var(--gold-light); }
+
+/* Region Selector Styles */
+.regions-container {
+  padding: 3rem 2.5rem 5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.regions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.region-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.region-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+}
+
+.region-card.selected {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.1);
+}
+
+.region-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.region-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.region-capital {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Admin/Fleet Cards */
+.admins-section {
+  padding: 2rem 2.5rem 5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-subtitle {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--muted);
+  margin: 2rem 0 1.5rem;
+}
+
+.admins-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.admin-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.admin-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.admin-fleet {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.admin-cars {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+/* Back button */
+.btn-back {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin: 2.5rem 2.5rem 0;
+  transition: all 0.2s;
+}
+
+.btn-back:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+@media (max-width: 640px) {
+  .search-bar { flex-direction: column; }
+  .admins-grid { grid-template-columns: 1fr; }
+  .region-card { padding: 1.5rem; }
+}

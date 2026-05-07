@@ -1,0 +1,17 @@
+.booking-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem;
+  margin-bottom: 1.25rem; display: flex; gap: 1.5rem;
+  transition: border-color 0.2s; align-items: center;
+}
+.booking-car-img { width: 130px; height: 90px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+.booking-info { flex: 1; }
+.booking-name { font-weight: 600; font-size: 1.05rem; margin-bottom: 0.3rem; }
+.booking-dates { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.5rem; }
+.booking-meta { display: flex; gap: 1rem; align-items: center; }
+.booking-price { font-weight: 700; color: var(--gold); font-size: 1.1rem; }
+
+@media (max-width: 640px) {
+  .booking-card { flex-direction: column; }
+  .booking-car-img { width: 100%; height: 180px; }
+}

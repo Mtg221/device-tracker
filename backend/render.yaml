@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: driveelite-backend
+    env: node
+    region: us-east-1
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3001

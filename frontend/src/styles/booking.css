@@ -1,0 +1,26 @@
+.car-modal-img { width: 100%; height: 220px; object-fit: cover; border-radius: 10px; margin-bottom: 1.25rem; }
+.car-modal-name { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem; }
+.car-modal-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
+
+.extras-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
+.extra-item {
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.75rem; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.extra-item:hover  { border-color: var(--gold); }
+.extra-item.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+.extra-item input { accent-color: var(--gold); }
+.extra-label { font-size: 0.85rem; }
+.extra-price { font-size: 0.75rem; color: var(--muted); }
+
+.booking-summary {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem;
+}
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--muted); }
+.summary-row.total {
+  border-top: 1px solid var(--border); padding-top: 0.75rem;
+  margin-top: 0.75rem; color: var(--white); font-weight: 600; font-size: 1rem;
+}
+.summary-row.total .price { color: var(--gold); font-size: 1.2rem; }
