@@ -21,19 +21,17 @@ if (!process.env.JWT_SECRET) {
 connectDB();
 
 // ─── Middleware ───────────────────────────────────────
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',') 
-  : ['http://localhost:5173'];
-
-app.use(cors({ 
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true)
+app.use(cors({
+  origin: function (origin, callback) {
+    const allowed = (process.env.CLIENT_URL || 'http://localhost:3000').split(',').map(s => s.trim());
+    if (!origin || allowed.includes(origin)) {
+      callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'))
+      // ❌ Ne jamais throw ici — ça génère un 500
+      callback(null, false);
     }
   },
-  credentials: true
+  credentials: true,
 }));
 app.use(express.json());
 
@@ -50,6 +48,5 @@ app.get("/", (req, res) => {
 
 // ─── Start server ─────────────────────────────────────
 app.listen(PORT, () => {
-const host = process.env.HOST || 'http://localhost';
-console.log(`🚗 DriveElite API running on ${host}:${PORT}`);
+  console.log(`🚗 DriveElite API running on http://localhost:${PORT}`);
 });
