@@ -50,5 +50,6 @@ app.get("/", (req, res) => {
 
 // ─── Start server ─────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`🚗 DriveElite API running on http://localhost:${PORT}`);
+const host = process.env.HOST || 'http://localhost';
+console.log(`🚗 DriveElite API running on ${host}:${PORT}`);
 });

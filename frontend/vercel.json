@@ -19,7 +19,7 @@
       "dest": "/index.html"
     }
   ],
-  "env": {
-    "VITE_API_URL": "https://your-render-backend-url.onrender.com/api"
-  }
+"env": {
+"VITE_API_URL": "https://device-tracker-aqd1.onrender.com/api"
+}
 }
