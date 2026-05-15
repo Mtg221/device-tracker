@@ -3,15 +3,17 @@ import { SENEGAL_REGIONS } from '../data/regions'
 import { apiFetch } from '../api'
 import RegionSelector from '../components/RegionSelector'
 import CarCard from '../components/CarCard'
+import BookingModal from '../components/BookingModal'
 import { useAuth } from '../context/AuthContext'
 import '../styles/fleet.css'
 
 export default function RegionsPage({ showToast, openModal, navigate }) {
-  const { currentUser } = useAuth()
-  const [selectedRegion, setSelectedRegion] = useState(null)
-  const [admins, setAdmins] = useState([])
-  const [cars, setCars] = useState([])
-  const [loading, setLoading] = useState(false)
+const { currentUser } = useAuth()
+const [selectedRegion, setSelectedRegion] = useState(null)
+const [admins, setAdmins] = useState([])
+const [cars, setCars] = useState([])
+const [loading, setLoading] = useState(false)
+const [bookingCar, setBookingCar] = useState(null)
 
   const handleRegionSelect = async (regionId) => {
     setSelectedRegion(regionId)
@@ -41,18 +43,23 @@ export default function RegionsPage({ showToast, openModal, navigate }) {
     setCars([])
   }
 
-  const handleBook = (car) => {
-    if (!currentUser) { 
-      openModal('login')
-      return 
-    }
-    // Navigate to fleet page with car selected
-    // Or open booking modal directly
-  }
+const handleBook = (carId) => {
+if (!currentUser) {
+openModal('login')
+return
+}
+const carToBook = cars.find(c => c.id === carId)
+if (carToBook) {
+setBookingCar(carToBook)
+}
+}
 
-  return (
-    <div className="page active">
-      {selectedRegion ? (
+return (
+<div className="page active">
+{bookingCar && (
+<BookingModal car={bookingCar} onClose={() => setBookingCar(null)} showToast={showToast} />
+)}
+{selectedRegion ? (
         <div className="region-view">
           <button className="btn-back" onClick={handleBack}>
             ← Back to Regions
