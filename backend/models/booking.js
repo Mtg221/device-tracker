@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require("mongoose"); // Importer Mongoose pour définir le schéma de réservation
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -22,4 +22,4 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true, transform: (_, ret) => { ret.id = ret._id; delete ret.__v; return ret; } } }
 );
 
-module.exports = mongoose.model("Booking", bookingSchema);
+module.exports = mongoose.model("Booking", bookingSchema); //  Exporter le modèle de réservation pour l'utiliser dans les routes et autres parties de l'application

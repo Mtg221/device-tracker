@@ -12,7 +12,7 @@ const adminRoutes = require("./routes/admin");
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Check JWT_SECRET
+// Check JWT_SECRET
 if (!process.env.JWT_SECRET) {
   throw new Error("❌ JWT_SECRET is missing in .env");
 }
@@ -23,7 +23,7 @@ connectDB();
 // ─── Middleware ───────────────────────────────────────
 app.use(cors({
   origin: function (origin, callback) {
-    const allowed = (process.env.CLIENT_URL || 'http://localhost:3000').split(',').map(s => s.trim());
+    const allowed = (process.env.CLIENT_URL || 'http://localhost:3000').split(',').map(s => s.trim()); // Support multiple origins
     if (!origin || allowed.includes(origin)) {
       callback(null, true);
     } else {

@@ -16,33 +16,33 @@ const SENEGAL_REGIONS = [
   { id: 'mbacke', name: 'Mbacké' },
   { id: 'fatick', name: 'Fatick' },
   { id: 'matam', name: 'Matam' },
-  { id: 'ziguinchor', name: 'Ziguinchor' },
+  { id: 'ziguinchor', name: 'Ziguinchor' }, 
   { id: 'kolda', name: 'Kolda' },
   { id: 'sedhiou', name: 'Sédhiou' },
   { id: 'kaffrine', name: 'Kaffrine' },
   { id: 'kédougou', name: 'Kédougou' },
 ];
 
-const router = express.Router();
+const router = express.Router(); // All admin-related routes will be defined here
 
 // Super Admin: Get all admins
-router.get("/admins", auth, async (req, res) => {
+router.get("/admins", auth, async (req, res) => { // Toujours vérifier le rôle avant de faire quoi que ce soit
   try {
-    if (req.user.role !== "superadmin") {
-      return res.status(403).json({ error: "Super admin access required" });
+    if (req.user.role !== "superadmin") { // Vérification du rôle superadmin
+      return res.status(403).json({ error: "Super admin access required" }); // Toujours return une réponse, jamais throw ici
     }
-    const admins = await User.find({ role: "admin" }).select("-password");
+    const admins = await User.find({ role: "admin" }).select("-password"); // Ne jamais retourner le password même hashé
     res.json(admins);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message }); 
   }
 });
 
 // Get admins by region (public)
-router.get("/regions/:regionId/admins", async (req, res) => {
+router.get("/regions/:regionId/admins", async (req, res) => { // Pas besoin d'auth pour ça, c'est public
   try {
     const { regionId } = req.params;
-    const admins = await User.find({ role: "admin", region: regionId })
+    const admins = await User.find({ role: "admin", region: regionId }) // Filtrer par région et rôle admin
       .select("-password");
     res.json(admins);
   } catch (err) {
@@ -145,19 +145,19 @@ router.post("/admins", auth, async (req, res) => {
 });
 
 // Super Admin: Delete admin
-router.delete("/admins/:id", auth, async (req, res) => {
+router.delete("/admins/:id", auth, async (req, res) => { // Toujours vérifier le rôle avant de faire quoi que ce soit
   try {
     if (req.user.role !== "superadmin") {
-      return res.status(403).json({ error: "Super admin access required" });
+      return res.status(403).json({ error: "Super admin access required" }); // Toujours return une réponse, jamais throw ici
     }
     
-    const admin = await User.findByIdAndDelete(req.params.id);
+    const admin = await User.findByIdAndDelete(req.params.id); // Supprimer l'admin
     if (!admin) {
-      return res.status(404).json({ error: "Admin not found" });
+      return res.status(404).json({ error: "Admin not found" }); // Toujours vérifier si l'admin existait avant de continuer
     }
     
     // Delete all cars owned by this admin
-    await Car.deleteMany({ adminId: req.params.id });
+    await Car.deleteMany({ adminId: req.params.id }); // Supprimer les voitures associées à cet admin
     
     res.json({ message: "Admin and their fleet deleted successfully" });
   } catch (err) {
@@ -169,12 +169,12 @@ router.delete("/admins/:id", auth, async (req, res) => {
 router.get("/cars", auth, async (req, res) => {
   try {
     if (req.user.role !== "superadmin") {
-      return res.status(403).json({ error: "Super admin access required" });
+      return res.status(403).json({ error: "Super admin access required" }); // Toujours return une réponse, jamais throw ici
     }
-    const cars = await Car.find().populate("adminId", "name email fleetName");
-    res.json(cars);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const cars = await Car.find().populate("adminId", "name email fleetName"); // Populer les infos de l'admin pour chaque voiture
+    res.json(cars); // Retourner la liste complète des voitures avec les infos de l'admin associé
+  } catch (err) { // Toujours attraper les erreurs et retourner une réponse d'erreur
+    res.status(500).json({ error: err.message }); // Ne jamais laisser une requête sans réponse, même en cas d'erreur
   }
 });
 
@@ -182,7 +182,7 @@ router.get("/cars", auth, async (req, res) => {
 router.get("/bookings", auth, async (req, res) => {
   try {
     if (req.user.role !== "superadmin") {
-      return res.status(403).json({ error: "Super admin access required" });
+      return res.status(403).json({ error: "Super admin access required" }); // Toujours return une réponse, jamais throw ici
     }
     const bookings = await Booking.find()
       .populate("userId", "name email")

@@ -6,21 +6,21 @@ The fleet selection system now requires users to first choose a region from all 
 
 ## Senegal Regions (14 Total)
 
-1. **Dakar** - Capital: Dakar
-2. **Thiès** - Capital: Thiès
-3. **Saint-Louis** - Capital: Saint-Louis
-4. **Diourbel** - Capital: Diourbel
-5. **Louga** - Capital: Louga
-6. **Tambacounda** - Capital: Tambacounda
-7. **Kaolack** - Capital: Kaolack
-8. **Mbacké** - Capital: Mbacké
-9. **Fatick** - Capital: Fatick
-10. **Matam** - Capital: Matam
-11. **Ziguinchor** - Capital: Ziguinchor
-12. **Kolda** - Capital: Kolda
-13. **Sédhiou** - Capital: Sédhiou
-14. **Kaffrine** - Capital: Kaffrine
-15. **Kédougou** - Capital: Kédougou
+1. **Dakar** 
+2. **Thiès** 
+3. **Saint-Louis** 
+4. **Diourbel** 
+5. **Louga** 
+6. **Tambacounda** 
+7. **Kaolack** 
+8. **Mbacké** 
+9. **Fatick** 
+10. **Matam** 
+11. **Ziguinchor** 
+12. **Kolda** 
+13. **Sédhiou** 
+14. **Kaffrine** 
+15. **Kédougou** 
 
 ## User Flow
 
