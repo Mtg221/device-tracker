@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+const mongoose = require("mongoose"); 
+const bcrypt = require("bcryptjs"); //bycrypt for hashing passwords
 
 const connectDB = async () => {
   try {
@@ -12,13 +12,13 @@ const connectDB = async () => {
   }
 };
 
-const createDefaultUsers = async () => {
-  const User = require("../models/users");
+const createDefaultUsers = async () => { // Create default users if they don't exist
+  const User = require("../models/users"); // Import User model here to avoid circular dependency issues
   
   // Create super admin
   const superAdminExists = await User.findOne({ email: "superadmin@driveelite.com" });
   if (!superAdminExists) {
-    const hashed = await bcrypt.hash("superadmin123", 10);
+    const hashed = await bcrypt.hash("superadmin123", 10); 
     await User.create({
       name: "Super Admin",
       email: "superadmin@driveelite.com",

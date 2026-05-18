@@ -32,7 +32,7 @@ router.get("/admins", auth, async (req, res) => { // Toujours vérifier le rôle
       return res.status(403).json({ error: "Super admin access required" }); // Toujours return une réponse, jamais throw ici
     }
     const admins = await User.find({ role: "admin" }).select("-password"); // Ne jamais retourner le password même hashé
-    res.json(admins);
+    res.json(admins); //
   } catch (err) {
     res.status(500).json({ error: err.message }); 
   }

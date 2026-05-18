@@ -19,7 +19,7 @@ const bookingSchema = new mongoose.Schema(
     totalPrice:  Number,
     status:      { type: String, default: "confirmed" },
   },
-  { timestamps: true, toJSON: { virtuals: true, transform: (_, ret) => { ret.id = ret._id; delete ret.__v; return ret; } } }
+  { timestamps: true, toJSON: { virtuals: true, transform: (_, ret) => { ret.id = ret._id; delete ret.__v; return ret; } } } // Ajouter des timestamps et une transformation pour renommer _id en id et supprimer __v lors de la conversion en JSON
 );
 
 module.exports = mongoose.model("Booking", bookingSchema); //  Exporter le modèle de réservation pour l'utiliser dans les routes et autres parties de l'application

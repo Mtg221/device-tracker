@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken"); // ✅ Toujours require les modules nécessaires
+const jwt = require("jsonwebtoken"); // ✅ Toujours require les modules nécessaires middleware is between routes and controllers, so it can be used in any route that needs auth
 
 const auth = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
@@ -11,4 +11,4 @@ const auth = (req, res, next) => {
   }
 };
 
-module.exports = auth;
+module.exports = auth; // Export the auth middleware to be used in routes that require authentication
