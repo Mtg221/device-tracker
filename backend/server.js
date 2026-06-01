@@ -6,7 +6,7 @@ const connectDB = require("./connection/connection");
 
 const authRoutes = require("./routes/auth");
 const carRoutes = require("./routes/cars");
-const bookingRoutes = require("./routes/booking");
+const bookingRoutes = require("./routes/booking"); 
 const adminRoutes = require("./routes/admin");
 
 const app  = express();
@@ -27,11 +27,11 @@ app.use(cors({ // CORS configuration with dynamic origin checking
     if (!origin || allowed.includes(origin)) {
       callback(null, true);
     } else {
-      // ❌ Ne jamais throw ici — ça génère un 500
-      callback(null, false);
+      //  Ne jamais throw ici — ça génère un 500
+      callback(null, false); // Just reject the request without throwing an error, allowing the browser to handle it as a CORS issue.
     }
   },
-  credentials: true,
+  credentials: true, // Allow cookies to be sent with requests (important for auth)
 }));
 app.use(express.json());
 
@@ -41,7 +41,7 @@ app.use("/api/cars", carRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 
-// ✅ Simple test route
+//  Simple test route
 app.get("/", (req, res) => {
   res.send("DriveElite API is running");
 });

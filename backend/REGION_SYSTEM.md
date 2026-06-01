@@ -32,7 +32,6 @@ The fleet selection system now requires users to first choose a region from all 
 - User sees a grid of all 14 Senegal regions
 - Each region card shows:
   - Region name
-  - Capital city
   - Location icon (📍)
 - Click on any region to view fleets in that region
 

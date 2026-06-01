@@ -18,7 +18,7 @@ export default function AddCarModal({ onClose, showToast, onAdded }) {
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
 
-  const submit = async () => {
+  const submit = async () => { // Basic validation
     setError('')
     if (!form.make) return setError('Make is required.')
     if (!form.model) return setError('Model is required.')
