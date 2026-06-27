@@ -1,39 +1,50 @@
 require('dotenv').config();
-const express   = require("express");
-const cors      = require("cors");
+const express    = require("express");
+const cors       = require("cors");
+const helmet     = require("helmet");
+const rateLimit  = require("express-rate-limit");
 
 const connectDB = require("./connection/connection");
 
-const authRoutes = require("./routes/auth");
-const carRoutes = require("./routes/cars");
-const bookingRoutes = require("./routes/booking"); 
-const adminRoutes = require("./routes/admin");
+const authRoutes    = require("./routes/auth");
+const carRoutes     = require("./routes/cars");
+const bookingRoutes = require("./routes/booking");
+const adminRoutes   = require("./routes/admin");
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
-// Check JWT_SECRET
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET is missing in .env");
 }
 
-// ─── Database ─────────────────────────────────────────
 connectDB();
 
-// ─── Middleware ───────────────────────────────────────
-app.use(cors({ // CORS configuration with dynamic origin checking
-  origin: function (origin, callback) {
-    const allowed = (process.env.CLIENT_URL || 'http://localhost:3000').split(',').map(s => s.trim()); // Support multiple origins
-    if (!origin || allowed.includes(origin)) {
-      callback(null, true);
-    } else {
-      //  Ne jamais throw ici — ça génère un 500
-      callback(null, false); // Just reject the request without throwing an error, allowing the browser to handle it as a CORS issue.
-    }
+app.use(helmet());
+
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
+  .split(',').map(s => s.trim());
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(null, false);
   },
-  credentials: true, // Allow cookies to be sent with requests (important for auth)
+  credentials: true,
 }));
-app.use(express.json());
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Trop de tentatives, réessayez dans 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // ─── Routes ───────────────────────────────────────────
 app.use("/api/auth", authRoutes);

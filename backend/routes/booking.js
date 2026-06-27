@@ -35,20 +35,39 @@ router.get("/", auth, async (req, res) => {
     
     res.json(bookings);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // POST /api/bookings - Create a new booking
 router.post("/", auth, async (req, res) => {
   try {
+    const { carId, car, startDate, endDate, days, extras, extrasTotal, carTotal, totalPrice } = req.body;
+    if (!carId || !startDate || !endDate)
+      return res.status(400).json({ error: "carId, startDate and endDate are required" });
+
+    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate)))
+      return res.status(400).json({ error: "Invalid date format" });
+
+    if (new Date(startDate) >= new Date(endDate))
+      return res.status(400).json({ error: "startDate must be before endDate" });
+
     const booking = await Booking.create({
-      ...req.body,
+      carId,
+      car,
+      startDate,
+      endDate,
+      days,
+      extras,
+      extrasTotal,
+      carTotal,
+      totalPrice,
       userId: req.user.id,
+      // status ne peut pas être défini par le client
     });
     res.status(201).json(booking);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ error: "Invalid booking data" });
   }
 });
 
@@ -77,7 +96,7 @@ router.delete("/:id", auth, async (req, res) => {
     await Booking.findByIdAndDelete(req.params.id);
     res.json({ message: "Booking cancelled" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -89,6 +108,11 @@ router.put("/:id", auth, async (req, res) => {
     }
 
     const { status } = req.body;
+    const VALID_STATUSES = ["confirmed", "pending", "cancelled"];
+    if (!status || !VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ error: `Status must be one of: ${VALID_STATUSES.join(', ')}` });
+    }
+
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
       { status },
@@ -101,7 +125,7 @@ router.put("/:id", auth, async (req, res) => {
 
     res.json(booking);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -145,7 +169,7 @@ router.get("/admin/stats", auth, async (req, res) => {
       totalRevenue,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

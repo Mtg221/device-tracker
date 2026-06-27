@@ -34,7 +34,7 @@ router.get("/admins", auth, async (req, res) => { // Toujours vérifier le rôle
     const admins = await User.find({ role: "admin" }).select("-password"); // Ne jamais retourner le password même hashé
     res.json(admins); //
   } catch (err) {
-    res.status(500).json({ error: err.message }); 
+    res.status(500).json({ error: "Internal server error" }); 
   }
 });
 
@@ -42,11 +42,11 @@ router.get("/admins", auth, async (req, res) => { // Toujours vérifier le rôle
 router.get("/regions/:regionId/admins", async (req, res) => { // Pas besoin d'auth pour ça, c'est public
   try {
     const { regionId } = req.params;
-    const admins = await User.find({ role: "admin", region: regionId }) // Filtrer par région et rôle admin
+    const admins = await User.find({ role: "admin", region: regionId })
       .select("-password");
     res.json(admins);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -55,26 +55,14 @@ router.get("/regions/:regionId/cars", async (req, res) => {
   try {
     const { regionId } = req.params;
     const Car = require("../models/cars");
-    
-    console.log(`\n=== Getting cars for region: ${regionId} ===`);
-    
+
     const admins = await User.find({ role: "admin", region: regionId });
-    console.log('Found admins:', admins.length);
-    admins.forEach(a => console.log(' - Admin:', a.name, 'ID:', a._id));
-    
     const adminIds = admins.map(a => a._id);
-    console.log('Admin IDs:', adminIds);
-    
     const cars = await Car.find({ adminId: { $in: adminIds } })
       .populate("adminId", "name fleetName region");
-    
-    console.log('Found cars:', cars.length);
-    cars.forEach(c => console.log(' - Car:', c.make, c.model, 'adminId:', c.adminId));
-    
     res.json(cars);
   } catch (err) {
-    console.error('Error getting cars by region:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -100,7 +88,7 @@ router.get("/regions/stats", async (req, res) => {
     
     res.json(stats);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -140,7 +128,7 @@ router.post("/admins", auth, async (req, res) => {
       role: admin.role
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -161,7 +149,7 @@ router.delete("/admins/:id", auth, async (req, res) => { // Toujours vérifier l
     
     res.json({ message: "Admin and their fleet deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -174,7 +162,7 @@ router.get("/cars", auth, async (req, res) => {
     const cars = await Car.find().populate("adminId", "name email fleetName"); // Populer les infos de l'admin pour chaque voiture
     res.json(cars); // Retourner la liste complète des voitures avec les infos de l'admin associé
   } catch (err) { // Toujours attraper les erreurs et retourner une réponse d'erreur
-    res.status(500).json({ error: err.message }); // Ne jamais laisser une requête sans réponse, même en cas d'erreur
+    res.status(500).json({ error: "Internal server error" }); // Ne jamais laisser une requête sans réponse, même en cas d'erreur
   }
 });
 
@@ -193,7 +181,7 @@ router.get("/bookings", auth, async (req, res) => {
       });
     res.json(bookings);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -216,7 +204,7 @@ router.get("/stats", auth, async (req, res) => {
     
     res.json({ totalAdmins, totalCars, totalBookings, totalRevenue });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

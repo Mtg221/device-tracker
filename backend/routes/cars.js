@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
     const cars = await Car.find();
     res.json(cars);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -20,7 +20,7 @@ router.get("/:id", async (req, res) => {
     if (!car) return res.status(404).json({ error: "Car not found" });
     res.json(car);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -30,21 +30,15 @@ router.post("/", auth, async (req, res) => {
     if (req.user.role !== "admin" && req.user.role !== "superadmin") {
       return res.status(403).json({ error: "Admin access required" });
     }
-    
-    console.log('Creating car - User ID:', req.user.id, 'Email:', req.user.email);
-    console.log('Car data received:', req.body);
-    
-    // Add adminId to the car
-    const carData = { ...req.body, adminId: req.user.id };
-    console.log('Car data with adminId:', carData);
-    
-    const car = await Car.create(carData);
-    console.log('Car created successfully with ID:', car._id, 'adminId:', car.adminId);
-    
+
+    const { make, model, year, pricePerDay, image, description, available, category } = req.body;
+    if (!make || !model || !pricePerDay)
+      return res.status(400).json({ error: "make, model and pricePerDay are required" });
+
+    const car = await Car.create({ make, model, year, pricePerDay, image, description, available, category, adminId: req.user.id });
     res.status(201).json(car);
   } catch (err) {
-    console.error('Error creating car:', err);
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ error: "Invalid car data" });
   }
 });
 
@@ -63,10 +57,15 @@ router.put("/:id", auth, async (req, res) => {
       return res.status(403).json({ error: "Not authorized to update this car" });
     }
     
-    const updatedCar = await Car.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { make, model, year, pricePerDay, image, description, available, category } = req.body;
+    const updatedCar = await Car.findByIdAndUpdate(
+      req.params.id,
+      { make, model, year, pricePerDay, image, description, available, category },
+      { new: true, runValidators: true }
+    );
     res.json(updatedCar);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ error: "Invalid car data" });
   }
 });
 
@@ -88,7 +87,7 @@ router.delete("/:id", auth, async (req, res) => {
     await Car.findByIdAndDelete(req.params.id);
     res.json({ message: "Car deleted" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -98,16 +97,10 @@ router.get("/admin/fleet", auth, async (req, res) => {
     if (req.user.role !== "admin" && req.user.role !== "superadmin") {
       return res.status(403).json({ error: "Admin access required" });
     }
-    
-    console.log('Fetching fleet cars for user:', req.user.id, 'Email:', req.user.email);
-    
     const cars = await Car.find({ adminId: req.user.id });
-    console.log('Found', cars.length, 'cars for this admin');
-    
     res.json(cars);
   } catch (err) {
-    console.error('Error fetching fleet cars:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

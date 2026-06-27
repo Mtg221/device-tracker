@@ -13,6 +13,12 @@ router.post("/register", async (req, res) => {
     if (!name || !email || !password)
       return res.status(400).json({ error: "All fields required" });
 
+    if (typeof password !== 'string' || password.length < 8)
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return res.status(400).json({ error: "Invalid email format" });
+
     if (await User.findOne({ email }))
       return res.status(400).json({ error: "Email already registered" });
 
@@ -29,7 +35,7 @@ router.post("/register", async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -37,6 +43,9 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ error: "All fields required" });
+
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.password)))
       return res.status(401).json({ error: "Invalid credentials" });
@@ -51,7 +60,7 @@ router.post("/login", async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -62,7 +71,7 @@ router.get("/me", auth, async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json({ id: user._id, name: user.name, email: user.email, role: user.role });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
